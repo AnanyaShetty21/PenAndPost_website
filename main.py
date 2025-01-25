@@ -1,12 +1,13 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
 pymysql.install_as_MySQLdb()
 from dotenv import load_dotenv
 from urllib.parse import quote
+
 
 
 load_dotenv()
@@ -40,6 +41,19 @@ class Users(UserMixin, db.Model):
 	password = db.Column(db.String(250),
 						nullable=False)
 
+class Blog(db.Model):
+	__tablename__ = "blog"
+	idblogs = db.Column(db.Integer, primary_key=True, autoincrement=True)
+	blogtitle = db.Column(db.String(255), nullable=False)
+	content = db.Column(db.Text, nullable=True)
+	draft = db.Column(db.Text, nullable=True)
+	blogimg = db.Column(db.String(500), nullable=True)
+	date = db.Column(db.Date, nullable=False)
+	userid = db.Column(db.Integer, db.ForeignKey('userinfo.id'), nullable=False)
+	category = db.Column(db.String(45), nullable=True)
+	visibility = db.Column(db.Integer, default=0)
+	status = db.Column(db.Integer, default=0)
+	likes = db.Column(db.Integer, default=0)
 
 
 db.init_app(app)
@@ -80,6 +94,49 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("home"))
+
+
+@app.route("/writeblog", methods=["POST", "GET"])
+@login_required
+def writeblog():
+	if request.method=="POST":
+		blogtitle = request.form.get('blogtitle')
+		content = request.form.get('content')
+		draft = request.form.get('content')
+		blogimg = request.form.get('blogimg')
+		category = request.form.get('category')
+		status = int(request.form.get('status'))
+		visibility = int(request.form.get('visibility'))
+	
+		existing_blog = Blog.query.filter_by(userid=session["_user_id"], draft=draft).first()
+
+		if existing_blog:
+			existing_blog.blogtitle = blogtitle
+			existing_blog.content = content if visibility else None
+			existing_blog.draft = draft 
+			existing_blog.blogimg = blogimg
+			existing_blog.category = category
+			existing_blog.status = 1 if status else 0
+			existing_blog.visibility = 1 if visibility else 0
+		
+		else:
+			new_blog = Blog(
+				blogtitle=blogtitle,
+				content=content if visibility else None,
+				draft=draft,
+				blogimg=blogimg,
+				date=db.func.current_date(),
+				userid=session["_user_id"],
+				category=category,
+				status=1 if status else 0,
+				visibility=1 if visibility else 0
+				)
+			db.session.add(new_blog)
+		db.session.commit()
+		return redirect(url_for("home"))
+			
+
+	return render_template("writeblog.html")
  
 
 

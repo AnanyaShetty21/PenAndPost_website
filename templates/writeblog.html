@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+   
+   {% block title %}Write a blog{% endblock %}
+    {% block navbar %}
+    <form action="/writeblog" method="POST">
+        <hr>
+        
+        <div class="select-box">
+            <select name="category" class="select-dropdown">
+              <option value="art">Art</option>
+              <option value="sports">Sports</option>
+              <option value="technology">Technology</option>
+              <option value="music">Music</option>
+              <option value="books">Books</option>
+              <option value="food">Food</option>
+            </select>
+          </div>
+          
+        <hr>
+        <h5>Publish</h5>
+        <ul>
+            <li>Status: Draft</li>
+            <li>
+
+                <ul>
+                    
+                        <li>
+                            <div class="radio-wrapper">
+                            
+                        <label for="publicoption">
+                          <input id="publicoption" type="radio" name="visibility" value=1>
+                          <span class="inner-label">Public</span>
+                        </label>
+                    </div>
+                    
+                    </li>
+                    <li>
+                        <div class="radio-wrapper">
+                        
+                        <label for="privateoption">
+                            <input id="privateoption" type="radio" name="visibility" checked value=0>
+                            <span class="inner-label">Private</span>
+                          </label>
+                        </div>
+                        
+                        </li>
+                   
+                    
+                </ul>
+            </li>
+            <li>
+                <input style="display: none;" type="file" name="blogimg" id="file" />
+                <label for="file" style="cursor: pointer;">Upload Image</label>
+              </li>
+            <li>
+                <input type="hidden" id="status-input" name="status" value="">
+                <button class="write-btn" type="button" id="draft-btn">Save as a draft</button>
+                <button class="write-btn" type="button" id="publish-btn">Publish</button>
+            </li>
+        </ul>
+    
+    
+    {% endblock %}
+
+    {% block content %}
+
+    
+        <input type="text" name="blogtitle" placeholder="Enter blog title" required />
+        <input type="hidden" id="hidden-input" name="content">
+        <!-- Include stylesheet -->
+        <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+
+        <!-- Create the editor container -->
+        <div id="editor">
+
+        </div>
+
+       
+    
+
+    <!-- Include the Quill library -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+    <!-- Initialize Quill editor -->
+    <script>
+    const quill = new Quill('#editor', {
+        theme: 'snow'
+    });
+
+    document.getElementById('draft-btn').addEventListener('click', function (e) {
+        document.getElementById('status-input').value = 0;
+        document.getElementById('hidden-input').value = quill.root.innerHTML;
+        document.querySelector('form').submit();
+  });
+
+  document.getElementById('publish-btn').addEventListener('click', function (e) {
+        document.getElementById('status-input').value = 1;
+        document.getElementById('hidden-input').value = quill.root.innerHTML;
+        document.querySelector('form').submit();
+  });
+
+    </script>
+    </form>
+
+{% endblock %}

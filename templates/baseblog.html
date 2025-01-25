@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}baseblog{% endblock %}
+
+    {% block navbar %}
+    <li><a href="#">Popular</a></li>
+    <li>
+        <a href="#">Categories</a>
+        <ul class="categories">
+            <li>
+                <div class="checkbox-wrapper">
+                  <label for="art">
+                    <input type="checkbox" id="art" name="category" value="art">
+                    <span class="inner-label">Art</span>
+                  </label>
+                </div>
+              </li>
+              <li>
+                <div class="checkbox-wrapper">
+                  <label for="sports">
+                    <input type="checkbox" id="sports" name="category" value="sports">
+                    <span class="inner-label">Sports</span>
+                  </label>
+                </div>
+              </li>
+              <li>
+                <div class="checkbox-wrapper">
+                  <label for="technology">
+                    <input type="checkbox" id="technology" name="category" value="technology">
+                    <span class="inner-label">Technology</span>
+                  </label>
+                </div>
+              </li>
+              <li>
+                <div class="checkbox-wrapper">
+                  <label for="music">
+                    <input type="checkbox" id="music" name="category" value="music">
+                    <span class="inner-label">Music</span>
+                  </label>
+                </div>
+              </li>
+              <li>
+                <div class="checkbox-wrapper">
+                  <label for="books">
+                    <input type="checkbox" id="books" name="category" value="books">
+                    <span class="inner-label">Books</span>
+                  </label>
+                </div>
+              </li>
+              <li>
+                <div class="checkbox-wrapper">
+                  <label for="food">
+                    <input type="checkbox" id="food" name="category" value="food">
+                    <span class="inner-label">Food</span>
+                  </label>
+                </div>
+              </li>
+              
+        </ul>
+    </li>
+    <li><a href="#">Saved</a></li>
+    {% endblock %}
+         
+
+       
+    {% block content %}{% endblock %}
+      
+       
+
