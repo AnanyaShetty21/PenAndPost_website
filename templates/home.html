@@ -3,4 +3,29 @@
 {% block content %}
             <h1>Welcome to Pen&Post!</h1>
             <p>Explore blogs, write your own, and dive into various categories!</p>
+            
+            <div class="container">
+              {% for blog in blogs %}
+                <div class="card">
+                  <div class="card-header">
+                    <img src="{{blog.blogimg}}" alt="rover" />
+                  </div>
+                  <div class="card-body">
+                    <span class="tag tag-teal">{{blog.category}}</span>
+                    <h4>
+                      {{blog.blogtitle}}
+                    </h4>
+                    <div class="user">
+                      <img src="{{ blog.dp }}" alt="user" />
+                      <div class="user-info">
+                        <h5>{{ blog.username }}</h5>
+                        <small>{{blog.date}}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {% endfor %}
+              </div>
+            
 {% endblock %}
