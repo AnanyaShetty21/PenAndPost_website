@@ -2,7 +2,7 @@
    
    {% block title %}Write a blog{% endblock %}
     {% block navbar %}
-    <form action="/writeblog" method="POST">
+    <form action="/writeblog" method="POST" enctype="multipart/form-data">
         <hr>
         
         <div class="select-box">
@@ -51,6 +51,14 @@
             <li>
                 <input style="display: none;" type="file" name="blogimg" id="file" />
                 <label for="file" style="cursor: pointer;">Upload Image</label>
+                <span id="filename">No file chosen</span>
+
+                <script>
+                document.getElementById('file').addEventListener('change', function() {
+                    let filename = this.files[0] ? this.files[0].name : "No file chosen";
+                    document.getElementById('filename').textContent = filename;
+                });
+                </script>
               </li>
             <li>
                 <input type="hidden" id="status-input" name="status" value="">

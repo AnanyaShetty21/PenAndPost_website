@@ -7,7 +7,7 @@ from flask_mysqldb import MySQL
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 mysql = MySQL(app)
 
 DB_USERNAME = os.getenv("DB_USERNAME")
@@ -123,11 +123,11 @@ def writeblog():
         draft = request.form.get('content')
         blogimg = request.files.get('blogimg') 
         if blogimg and blogimg.filename:
-            filepath = os.path.join('static/images', blogimg_file.filename)
-            blogimg_file.save(filepath) 
-            blogimg = blogimg_file.filename 
+            filepath = os.path.join('static\\user_uploaded_images', blogimg.filename)
+            blogimg.save(filepath) 
+            blogimg = filepath
         else:
-            blogimg = 'static\images\\blogimg_placeholder.png'  
+            blogimg = 'static\\images\\blogimg_placeholder.png'  
         category = request.form.get('category')
         status = int(request.form.get('status'))
         visibility = int(request.form.get('visibility'))
@@ -135,20 +135,17 @@ def writeblog():
         cursor = mysql.connection.cursor()
         cursor.execute("SELECT * FROM blog WHERE userid = %s AND draft = %s", (session["_user_id"], draft))
         existing_blog = cursor.fetchone()
-        print(existing_blog)
         if existing_blog:
             cursor.execute("""
                 UPDATE blog 
                 SET blogtitle = %s, content = %s, draft = %s, blogimg = %s, category = %s, 
                     status = %s, visibility = %s
-                WHERE idblogs = %s
-            """, (blogtitle, content if visibility else None, draft, blogimg, category, 
+                WHERE idblogs = %s""", (blogtitle, content if visibility else None, draft, blogimg, category, 
                   1 if status else 0, 1 if visibility else 0, existing_blog['idblogs']))
         else:
             cursor.execute("""
                 INSERT INTO blog (blogtitle, content, draft, blogimg, date, userid, category, status, visibility) 
-                VALUES (%s, %s, %s, %s, CURRENT_DATE(), %s, %s, %s, %s)
-            """, (blogtitle, content if visibility else None, draft, blogimg, session["_user_id"], category, 
+                VALUES (%s, %s, %s, %s, CURRENT_DATE(), %s, %s, %s, %s)""", (blogtitle, content if visibility else None, draft, blogimg, session["_user_id"], category, 
                   1 if status else 0, 1 if visibility else 0))
 
         mysql.connection.commit()
@@ -159,10 +156,52 @@ def writeblog():
     return render_template("writeblog.html")
 
 
-@app.route("/")
+@app.route("/<int:idblogs>")
+def view_blog(idblogs):
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM blog WHERE idblogs = %s", (idblogs,))
+    blog = cursor.fetchone()
+    cursor.close()
+    return render_template("view_blog.html", blog=blog)
+
+
+
+
+
+@app.route("/", methods=["GET"])
 def home():
-	blogs = get_blogs()
-	return render_template("home.html", blogs=blogs)
+    selected_categories = request.args.getlist("category")
+    yourblogs = request.args.get("yourblogs")
+    params = []
+    cursor = mysql.connection.cursor()
+    query = """
+        SELECT blog.idblogs, blog.blogtitle, blog.content, blog.blogimg, blog.date, blog.likes, blog.category, userinfo.username, userinfo.dp 
+        FROM blog 
+        JOIN userinfo ON blog.userid = userinfo.id
+    """
+    if yourblogs or selected_categories:
+        query += " WHERE"
+    if yourblogs:
+        query += " blog.userid = %s"
+        params.append(session["_user_id"])
+    if yourblogs and selected_categories:
+        query += " AND"
+    if selected_categories:
+        query += " blog.category IN ("
+        for i in range(len(selected_categories)-1):
+            query += "%s, "
+        query += "%s)"
+        params.extend(selected_categories)
+    query += "ORDER BY blog.date DESC"
+    
+    print(params)
+    cursor.execute(query, params)
+
+    blogs = cursor.fetchall()
+    cursor.close()
+
+    return render_template("home.html", blogs=blogs)
+
 
 
 if __name__ == "__main__":

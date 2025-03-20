@@ -6,6 +6,7 @@
             
             <div class="container">
               {% for blog in blogs %}
+              <a href="{{ url_for('view_blog', idblogs=blog.idblogs) }}">
                 <div class="card">
                   <div class="card-header">
                     <img src="{{blog.blogimg}}" alt="rover" />
@@ -24,6 +25,7 @@
                     </div>
                   </div>
                 </div>
+              </a>
                 
                 {% endfor %}
               </div>

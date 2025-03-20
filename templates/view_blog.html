@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Pen&Post{% endblock %}
+{% block content %}
+    <h1>{{ blog.blogtitle }}</h1>
+    <p>{{ blog.date }}</p>
+    <img src="{{blog.blogimg}}" alt="blog image">
+    <div>
+        <p>{{ blog.content | safe}}</p>
+    </div>
+{% endblock %}

@@ -95,6 +95,23 @@ header {
     color: #D8B4A4;
 }
 
+.navbar button{
+    background-color: #1B212B;
+    color: #CEC4B4;
+    border: 2px solid transparent;
+    padding: 8px 16px;
+    margin-left: 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.navbar button:hover{
+    border-color: #1B212B;
+    background-color: #CEC4B4;
+    color: #1B212B;
+}
+
 .categories {
     padding-left: 20px;
     margin-top: 10px;
@@ -314,6 +331,11 @@ header {
   width: 1040px;
   justify-content: space-evenly;
   flex-wrap: wrap;
+}
+
+.container a{
+  text-decoration: none;
+  color: #1B212B;
 }
 .card {
   margin: 10px;
