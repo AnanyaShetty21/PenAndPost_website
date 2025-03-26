@@ -7,13 +7,17 @@
     <hr>
     
     <div class="select-box">
-        <select name="category" class="select-dropdown">
-          <option value="art" {% if edit_mode and blog.category == 'art' %}selected{% endif %}>Art</option>
-          <option value="sports" {% if edit_mode and blog.category == 'sports' %}selected{% endif %}>Sports</option>
-          <option value="technology" {% if edit_mode and blog.category == 'technology' %}selected{% endif %}>Technology</option>
-          <option value="music" {% if edit_mode and blog.category == 'music' %}selected{% endif %}>Music</option>
-          <option value="books" {% if edit_mode and blog.category == 'books' %}selected{% endif %}>Books</option>
-          <option value="food" {% if edit_mode and blog.category == 'food' %}selected{% endif %}>Food</option>
+        <select name="category" class="select-dropdown" required>
+            <!-- Add a default placeholder option -->
+            <option value="">Select a Category</option>
+            
+            <!-- Dynamically populate categories from database -->
+            {% for category in categories %}
+                <option value="{{ category.idcategory }}" 
+                    {% if edit_mode and category.idcategory == blog.category %}selected{% endif %}>
+                    {{ category.category_name }}
+                </option>
+            {% endfor %}
         </select>
       </div>
       

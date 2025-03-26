@@ -57,12 +57,25 @@ def get_user_by_username(username):
     cursor.close()
     return user_data
 
+
+def get_categories():
+    """
+    Fetch all available blog categories
+    """
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM category")
+    categories = cursor.fetchall()
+    cursor.close()
+    return categories
+
 def get_blogs():
     cursor = mysql.connection.cursor()
     cursor.execute("""
-        SELECT blog.blogtitle, blog.content, blog.blogimg, blog.date, blog.likes, blog.category, userinfo.username, userinfo.dp 
+        SELECT blog.blogtitle, blog.content, blog.blogimg, blog.date, 
+               blog.likes, category.category_name, userinfo.username, userinfo.dp 
         FROM blog 
-        JOIN userinfo ON blog.userid = userinfo.id 
+        JOIN userinfo ON blog.userid = userinfo.id
+        LEFT JOIN category ON blog.category = category.idcategory
         ORDER BY blog.date DESC
         """)
     blogs = cursor.fetchall()
@@ -80,9 +93,11 @@ def get_users():
 def get_user_blogs(user_id):
     cursor = mysql.connection.cursor()
     cursor.execute("""
-        SELECT * FROM blog 
-        WHERE userid = %s
-        ORDER BY date DESC
+        SELECT blog.*, category.category_name 
+        FROM blog 
+        LEFT JOIN category ON blog.category = category.idcategory
+        WHERE blog.userid = %s
+        ORDER BY blog.date DESC
     """, (user_id,))
     blogs = cursor.fetchall()
     cursor.close()
@@ -91,9 +106,11 @@ def get_user_blogs(user_id):
 def get_user_public_blogs(user_id):
     cursor = mysql.connection.cursor()
     cursor.execute("""
-        SELECT * FROM blog 
-        WHERE userid = %s AND visibility = %s
-        ORDER BY date DESC
+        SELECT blog.*, category.category_name 
+        FROM blog 
+        LEFT JOIN category ON blog.category = category.idcategory
+        WHERE blog.userid = %s AND blog.visibility = %s
+        ORDER BY blog.date DESC
     """, (user_id, 1))
     blogs = cursor.fetchall()
     cursor.close()
@@ -211,6 +228,7 @@ def logout():
 @app.route("/writeblog", methods=["POST", "GET"])
 @login_required
 def writeblog():
+    categories = get_categories()
     if request.method == "POST":
         blogtitle = request.form.get('blogtitle')
         content = request.form.get('content')
@@ -245,7 +263,7 @@ def writeblog():
 
         return redirect(url_for("home"))
 
-    return render_template("writeblog.html")
+    return render_template("writeblog.html", categories=categories)
 
 
 
@@ -288,13 +306,16 @@ def follow_user(user_id):
         cursor = mysql.connection.cursor()
         cursor.execute("DELETE FROM follow WHERE follower_id = %s AND following_id = %s", 
                       (follower_id, user_id))
+        cursor.execute("UPDATE userinfo SET followers = followers - 1 WHERE id = %s", (user_id,))
+        cursor.execute("UPDATE userinfo SET following = following - 1 WHERE id = %s", (follower_id,))
         mysql.connection.commit()
         cursor.close()
         return jsonify({"success": True, "action": "unfollowed"})
     else:
         cursor = mysql.connection.cursor()
-        cursor.execute("INSERT INTO follow (follower_id, following_id) VALUES (%s, %s)", 
-                      (follower_id, user_id))
+        cursor.execute("INSERT INTO follow (follower_id, following_id) VALUES (%s, %s)", (follower_id, user_id))
+        cursor.execute("UPDATE userinfo SET followers = followers + 1 WHERE id = %s", (user_id,))
+        cursor.execute("UPDATE userinfo SET following = following + 1 WHERE id = %s", (follower_id,))
         mysql.connection.commit()
         cursor.close()
         return jsonify({"success": True, "action": "followed"})
@@ -341,8 +362,13 @@ def profile(username=None):
 @app.route("/edit/<int:blog_id>", methods=["GET", "POST"])
 @login_required
 def edit_blog(blog_id):
+    categories = get_categories()
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM blog WHERE idblogs = %s", (blog_id,))
+    cursor.execute("""
+        SELECT blog.*, category.category_name 
+        FROM blog 
+        LEFT JOIN category ON blog.category = category.idcategory
+        WHERE idblogs = %s""", (blog_id,))
     blog = cursor.fetchone()
     cursor.close()
     
@@ -375,7 +401,7 @@ def edit_blog(blog_id):
 
         return redirect(url_for("view_blog", idblogs=blog_id))
     
-    return render_template("writeblog.html", blog=blog, edit_mode=True)
+    return render_template("writeblog.html", blog=blog, edit_mode=True, categories=categories)
 
 
 @app.route("/delete/<int:blog_id>", methods=["POST"])
@@ -401,9 +427,10 @@ def delete_blog(blog_id):
 def view_blog(idblogs):
     cursor = mysql.connection.cursor()
     cursor.execute("""
-        SELECT blog.*, userinfo.username, userinfo.dp
+        SELECT blog.*, userinfo.username, userinfo.dp, category.category_name
         FROM blog 
         JOIN userinfo ON blog.userid = userinfo.id
+        LEFT JOIN category ON blog.category = category.idcategory
         WHERE blog.idblogs = %s
     """, (idblogs,))
     blog = cursor.fetchone()
@@ -432,6 +459,17 @@ def delete_profile():
     
     try:
         cursor = mysql.connection.cursor()
+        cursor.execute("""
+        UPDATE userinfo 
+        SET followers = followers - 1 
+        WHERE id IN (SELECT following_id FROM follow WHERE follower_id = %s)
+            """, (user_id,))
+
+        cursor.execute("""
+        UPDATE userinfo 
+        SET following = following - 1 
+        WHERE id IN (SELECT follower_id FROM follow WHERE following_id = %s)
+            """, (user_id,))
         
         cursor.execute("DELETE FROM userinfo WHERE id = %s", (user_id,))
         
@@ -449,20 +487,114 @@ def delete_profile():
 
 
 
+@app.route('/notes')
+@login_required
+def notes_list():
+    user_id = session["_user_id"]
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT idnote, title FROM note WHERE userid = %s", (user_id,))
+    notes = cursor.fetchall()
+    cursor.close()
+
+    return render_template('notes_list.html', notes=notes)
+
+
+@app.route('/add_note', methods=['GET', 'POST'])
+@login_required
+def add_note():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        content = request.form.get('content')
+        user_id = session["_user_id"]
+        
+        cursor = mysql.connection.cursor()
+        cursor.execute("INSERT INTO note (title, content, userid) VALUES (%s, %s, %s)", 
+                       (title, content, user_id))
+        mysql.connection.commit()
+        cursor.close()
+        
+        flash('Note created successfully!', 'success')
+        return redirect(url_for('notes_list'))
+    
+    return render_template('create_note.html')
+
+@app.route('/note/<int:note_id>')
+@login_required
+def note_detail(note_id):
+    user_id = session["_user_id"]
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM note WHERE idnote = %s AND userid = %s", (note_id, user_id))
+    note = cursor.fetchone()
+    cursor.close()
+    
+    if not note:
+        flash('Note not found', 'error')
+        return redirect(url_for('notes_list'))
+    
+    return render_template('note_detail.html', note=note)
+
+@app.route('/edit_note/<int:note_id>', methods=['GET', 'POST'])
+@login_required
+def edit_note(note_id):
+    user_id = session["_user_id"]
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM note WHERE idnote = %s AND userid = %s", (note_id, user_id))
+    note = cursor.fetchone()
+    
+    if not note:
+        flash('Note not found', 'error')
+        return redirect(url_for('notes_list'))
+    
+    if request.method == 'POST':
+        title = request.form.get('title')
+        content = request.form.get('content')
+        
+        cursor.execute("UPDATE note SET title = %s, content = %s WHERE idnote = %s", 
+                       (title, content, note_id))
+        mysql.connection.commit()
+        cursor.close()
+        
+        flash('Note updated successfully!', 'success')
+        return redirect(url_for('note_detail', note_id=note_id))
+    
+    cursor.close()
+    return render_template('edit_note.html', note=note)
+
+@app.route('/delete_note/<int:note_id>', methods=['POST'])
+@login_required
+def delete_note(note_id):
+    user_id = session["_user_id"]
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute("DELETE FROM note WHERE idnote = %s AND userid = %s", (note_id, user_id))
+    mysql.connection.commit()
+    cursor.close()
+    
+    flash('Note deleted successfully!', 'success')
+    return redirect(url_for('notes_list'))
+
+
+
+
 @app.route("/", methods=["GET"])
 def home():
     selected_categories = request.args.getlist("category")
     yourblogs = request.args.get("yourblogs")
     sort_by_popular = request.args.get("popular")
-    
+    categories = get_categories()
     params = []
     cursor = mysql.connection.cursor()
     
     query = """
         SELECT blog.idblogs, blog.blogtitle, blog.content, blog.blogimg, blog.date, 
-               blog.likes, blog.category, blog.userid, userinfo.username, userinfo.dp 
+               blog.likes, category.category_name, blog.userid, 
+               userinfo.username, userinfo.dp 
         FROM blog 
         JOIN userinfo ON blog.userid = userinfo.id
+        LEFT JOIN category ON blog.category = category.idcategory
         WHERE (blog.visibility = 1
     """
    
@@ -480,7 +612,7 @@ def home():
         params.append(session["_user_id"])
         
     if selected_categories:
-        query += " AND blog.category IN ("
+        query += " AND category.category_name IN ("
         for i in range(len(selected_categories)-1):
             query += "%s, "
         query += "%s)"
@@ -495,7 +627,7 @@ def home():
     blogs = cursor.fetchall()
     cursor.close()
 
-    return render_template("home.html", blogs=blogs)
+    return render_template("home.html", blogs=blogs, categories=categories)
 
 
 

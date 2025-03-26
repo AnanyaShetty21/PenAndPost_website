@@ -16,6 +16,11 @@
         </div>
         <div class="header-right">
             {% if current_user.is_authenticated %}
+            <a class="header-a" href="/notes" >View notes</a>
+            {% else %}
+            <a class="header-a" href="/login" >View notes</a>
+            {% endif %}
+            {% if current_user.is_authenticated %}
             <a href = "{{ url_for('home', yourblogs='true')}}">
             <button class="header-btn">Your Blogs</button></a>
             {% else %}

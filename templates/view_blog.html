@@ -6,7 +6,7 @@
         <div class="blog-meta">
             <p>Posted on: {{ blog.date }}</p>
             <p>By: <a href="{{ url_for('profile', username=blog.username) }}">{{ blog.username }}</a></p>
-            <p>Category: {{ blog.category }}</p>
+            <p>Category: {{ blog.category_name }}</p>
         </div>
         
         {% if is_author %}
