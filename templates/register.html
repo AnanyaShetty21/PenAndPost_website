@@ -84,13 +84,33 @@
         .link a:hover {
             color: var(--button-hover-color);
         }
+        .file-upload-label {
+            display: block;
+            padding: 0.75rem;
+            background-color: var(--button-color);
+            color: #1B212B;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .file-upload-label:hover {
+            background-color: var(--button-hover-color);
+        }
+        .file-name {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body>
     <div class="flex items-center justify-center min-h-screen">
         <div class="form-container">
             <h1 class="form-title">Create Your Account</h1>
-            <form action="#" method="post">
+            <form action="/register" method="post" enctype="multipart/form-data">
                 <input 
                     type="text" 
                     placeholder="Username" 
@@ -103,12 +123,19 @@
                     class="input-field"
                     name="password" 
                 >
+                <input style="display: none;" type="file" name="dp" id="dpimg" accept="image/*" />
+                <label for="dpimg" class="file-upload-label">Upload Profile Image</label>
+                <div id="selected-file" class="file-name">No file selected</div>
+
                 <button 
                     type="submit" 
                     class="btn"
                 >
                     Register
                 </button>
+                {% if error %}
+                <p style="color: red; text-align: center;">{{ error }}</p>
+                {% endif %}
             </form>
             <div class="link">
                 <p>Already have an account? <a href="/login">Login here</a></p>
@@ -122,6 +149,11 @@
             scale: 0.8,
             opacity: 0,
             ease: "elastic.out(1, 0.75)"
+        });
+
+        document.getElementById('dpimg').addEventListener('change', function() {
+            const fileName = this.files[0] ? this.files[0].name : 'No file selected';
+            document.getElementById('selected-file').textContent = fileName;
         });
     </script>
 </body>

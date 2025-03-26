@@ -1,90 +1,71 @@
 {% extends "base.html" %}
    
-   {% block title %}Write a blog{% endblock %}
-    {% block navbar %}
-    <form action="/writeblog" method="POST" enctype="multipart/form-data">
-        <hr>
-        
-        <div class="select-box">
-            <select name="category" class="select-dropdown">
-              <option value="art">Art</option>
-              <option value="sports">Sports</option>
-              <option value="technology">Technology</option>
-              <option value="music">Music</option>
-              <option value="books">Books</option>
-              <option value="food">Food</option>
-            </select>
-          </div>
-          
-        <hr>
-        <h5>Publish</h5>
-        <ul>
-            <li>Status: Draft</li>
-            <li>
+{% block title %}{% if edit_mode %}Edit Blog{% else %}Write a Blog{% endif %}{% endblock %}
 
-                <ul>
-                    
-                        <li>
-                            <div class="radio-wrapper">
-                            
-                        <label for="publicoption">
-                          <input id="publicoption" type="radio" name="visibility" value=1>
-                          <span class="inner-label">Public</span>
-                        </label>
+{% block navbar %}
+<form action="{% if edit_mode %}{{ url_for('edit_blog', blog_id=blog.idblogs) }}{% else %}/writeblog{% endif %}" method="POST" enctype="multipart/form-data">
+    <hr>
+    
+    <div class="select-box">
+        <select name="category" class="select-dropdown">
+          <option value="art" {% if edit_mode and blog.category == 'art' %}selected{% endif %}>Art</option>
+          <option value="sports" {% if edit_mode and blog.category == 'sports' %}selected{% endif %}>Sports</option>
+          <option value="technology" {% if edit_mode and blog.category == 'technology' %}selected{% endif %}>Technology</option>
+          <option value="music" {% if edit_mode and blog.category == 'music' %}selected{% endif %}>Music</option>
+          <option value="books" {% if edit_mode and blog.category == 'books' %}selected{% endif %}>Books</option>
+          <option value="food" {% if edit_mode and blog.category == 'food' %}selected{% endif %}>Food</option>
+        </select>
+      </div>
+      
+    <hr>
+    <h5>Publish</h5>
+    <ul>
+        <li>
+            <ul>
+                <li>
+                    <div class="radio-wrapper">
+                    <label for="publicoption">
+                      <input id="publicoption" type="radio" name="visibility" value=1 {% if edit_mode and blog.visibility == 1 %}checked{% endif %}>
+                      <span class="inner-label">Public</span>
+                    </label>
                     </div>
-                    
-                    </li>
-                    <li>
-                        <div class="radio-wrapper">
-                        
-                        <label for="privateoption">
-                            <input id="privateoption" type="radio" name="visibility" checked value=0>
-                            <span class="inner-label">Private</span>
-                          </label>
-                        </div>
-                        
-                        </li>
-                   
-                    
-                </ul>
-            </li>
-            <li>
-                <input style="display: none;" type="file" name="blogimg" id="file" />
-                <label for="file" style="cursor: pointer;">Upload Image</label>
-                <span id="filename">No file chosen</span>
+                </li>
+                <li>
+                    <div class="radio-wrapper">
+                    <label for="privateoption">
+                        <input id="privateoption" type="radio" name="visibility" value=0 {% if not edit_mode or blog.visibility == 0 %}checked{% endif %}>
+                        <span class="inner-label">Private</span>
+                      </label>
+                    </div>
+                </li>
+            </ul>
+        </li>
+        <li>
+            <input style="display: none;" type="file" name="blogimg" id="file" />
+            <label for="file" style="cursor: pointer;">Upload Image</label>
+            <span id="filename">{% if edit_mode and blog.blogimg %}{{ blog.blogimg.split('\\')[-1] }}{% else %}No file chosen{% endif %}</span>
 
-                <script>
-                document.getElementById('file').addEventListener('change', function() {
-                    let filename = this.files[0] ? this.files[0].name : "No file chosen";
-                    document.getElementById('filename').textContent = filename;
-                });
-                </script>
-              </li>
-            <li>
-                <input type="hidden" id="status-input" name="status" value="">
-                <button class="write-btn" type="button" id="draft-btn">Save as a draft</button>
-                <button class="write-btn" type="button" id="publish-btn">Publish</button>
-            </li>
-        </ul>
-    
-    
-    {% endblock %}
+            <script>
+            document.getElementById('file').addEventListener('change', function() {
+                let filename = this.files[0] ? this.files[0].name : "No file chosen";
+                document.getElementById('filename').textContent = filename;
+            });
+            </script>
+          </li>
+        <li>
+            <button class="write-btn" type="submit">Publish</button>
+        </li>
+    </ul>
+{% endblock %}
 
-    {% block content %}
+{% block content %}
+    <input type="text" name="blogtitle" value="{% if edit_mode %}{{ blog.blogtitle }}{% else %}{% endif %}" placeholder="Enter blog title" required style="width: 1210px; background-color: #554B46; color: white; padding: 5px; border: 1px solid #ccc; margin-bottom: 20px; font-size: 24px;"/>
+    <input type="hidden" id="hidden-input" name="content">
+    <!-- Include stylesheet -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
 
-    
-        <input type="text" name="blogtitle" placeholder="Enter blog title" required />
-        <input type="hidden" id="hidden-input" name="content">
-        <!-- Include stylesheet -->
-        <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
-
-        <!-- Create the editor container -->
-        <div id="editor">
-
-        </div>
-
-       
-    
+    <!-- Create the editor container -->
+    <div id="editor" {% if edit_mode and blog.content %}data-content="{{ blog.content|e }}"{% endif %}></div>
 
     <!-- Include the Quill library -->
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
@@ -95,19 +76,16 @@
         theme: 'snow'
     });
 
-    document.getElementById('draft-btn').addEventListener('click', function (e) {
-        document.getElementById('status-input').value = 0;
-        document.getElementById('hidden-input').value = quill.root.innerHTML;
-        document.querySelector('form').submit();
-  });
+    const editorElement = document.getElementById('editor');
+    if (editorElement.hasAttribute('data-content')) {
+        quill.clipboard.dangerouslyPasteHTML(0, editorElement.getAttribute('data-content'));
+    }
 
-  document.getElementById('publish-btn').addEventListener('click', function (e) {
-        document.getElementById('status-input').value = 1;
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
         document.getElementById('hidden-input').value = quill.root.innerHTML;
-        document.querySelector('form').submit();
-  });
-
+        this.submit();
+    });
     </script>
-    </form>
-
+</form>
 {% endblock %}

@@ -15,9 +15,13 @@
             <a href="/" class="logo">Pen&Post</a>
         </div>
         <div class="header-right">
+            {% if current_user.is_authenticated %}
             <a href = "{{ url_for('home', yourblogs='true')}}">
             <button class="header-btn">Your Blogs</button></a>
-            <button class="header-btn">Journal</button>
+            {% else %}
+            <a href = "/login">
+            <button class="header-btn">Your Blogs</button></a>
+            {% endif %}
             {% if current_user.is_authenticated %}
             <a class="header-a" href="/writeblog" >Write</a>
             {% else %}
@@ -27,6 +31,11 @@
             <a class="header-a" href="/logout">Logout</a>
             {% else %}
             <a class="header-a"  href="/login">Login</a>
+            {% endif %}
+            {% if current_user.is_authenticated %}
+            <a class="header-a" href="/profile/{{current_user.username}}" >{{current_user.username}}</a>
+            {% else %}
+            <a class="header-a" href="/login" >Profile</a>
             {% endif %}
         </div>
     </header>
@@ -45,9 +54,7 @@
         <div class="content-body">
             {% block content %}{% endblock %}
         </div>
-        <div id="footer">
-            <!-- Footer coming soon -->
-        </div>
+
     </div>
 </body>
 </html>

@@ -108,6 +108,10 @@
                 >
                     Login
                 </button>
+                {% if error %}
+                <p style="color: red; text-align: center;">{{ error }}</p>
+                {% endif %}
+
             </form>
             <div class="link">
                 <p>Don't have an account? <a href="/register">Register here</a></p>

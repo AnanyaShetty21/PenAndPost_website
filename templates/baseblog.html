@@ -2,9 +2,9 @@
 {% block title %}baseblog{% endblock %}
 
     {% block navbar %}
-    <li><a href="#">Popular</a></li>
+    <li><a href="{{ url_for('home', popular='true') }}">Popular</a></li>
     <li>
-        <a href="#">Categories</a>
+        
         <form method = "GET" action = "/">
         <ul class="categories">
             <li>
@@ -59,7 +59,6 @@
         </ul>
         </form>
     </li>
-    <li><a href="#">Saved</a></li>
     {% endblock %}
          
 

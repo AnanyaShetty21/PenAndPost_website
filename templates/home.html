@@ -22,12 +22,18 @@
                         <h5>{{ blog.username }}</h5>
                         <small>{{blog.date}}</small>
                       </div>
+                      <div class="like-section">
+                        <span class="heart-icon" data-blog-id="{{ blog.idblogs }}">
+                          ❤️ <span class="like-count">{{ blog.likes }}</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </a>
+                </a>
+                
                 
                 {% endfor %}
-              </div>
+            </div>
             
 {% endblock %}
