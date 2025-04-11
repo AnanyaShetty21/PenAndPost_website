@@ -336,6 +336,7 @@ def profile(username=None):
             blogs = get_user_public_blogs(user_id)
         elif is_own_profile or is_following(session["_user_id"], user_id):
             blogs = get_user_blogs(user_id)
+        print(blogs)
     else:
         user_id = session["_user_id"]
         user_data = get_user_by_id(user_id)

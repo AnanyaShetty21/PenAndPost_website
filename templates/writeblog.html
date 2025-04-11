@@ -63,14 +63,15 @@
 {% endblock %}
 
 {% block content %}
-    <input type="text" name="blogtitle" value="{% if edit_mode %}{{ blog.blogtitle }}{% else %}{% endif %}" placeholder="Enter blog title" required style="width: 1210px; background-color: #554B46; color: white; padding: 5px; border: 1px solid #ccc; margin-bottom: 20px; font-size: 24px;"/>
+    <input type="text" name="blogtitle" value="{% if edit_mode %}{{ blog.blogtitle }}{% else %}{% endif %}" placeholder="Enter blog title" required style="width: 1210px; background-color: #554B46; color: white; margin-top: 50px; padding: 5px; margin-bottom: 20px; font-size: 24px; margin-left: 90px;"/>
     <input type="hidden" id="hidden-input" name="content">
     <!-- Include stylesheet -->
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
 
     <!-- Create the editor container -->
-    <div id="editor" {% if edit_mode and blog.content %}data-content="{{ blog.content|e }}"{% endif %}></div>
-
+    <div style="margin-left: 90px;">
+    <div id="editor" style="background-color: #78675A; word-wrap: break-word; overflow-wrap: break-word; min-height: 75vh;" {% if edit_mode and blog.content %}data-content="{{ blog.content|e }}"{% endif %}></div>
+    </div>
     <!-- Include the Quill library -->
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 
@@ -79,6 +80,14 @@
     const quill = new Quill('#editor', {
         theme: 'snow'
     });
+
+    const editorContent = document.querySelector('.ql-editor');
+    editorContent.style.whiteSpace = 'normal';
+    editorContent.style.wordWrap = 'break-word';
+    editorContent.style.overflowWrap = 'break-word';
+    editorContent.style.wordBreak = 'break-word';
+
+    editorContent.style.overflowX = 'hidden';
 
     const editorElement = document.getElementById('editor');
     if (editorElement.hasAttribute('data-content')) {

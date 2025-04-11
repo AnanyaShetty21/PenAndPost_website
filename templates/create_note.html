@@ -1,17 +1,24 @@
 {% extends 'base.html' %}
 {% block title %}Create New Note{% endblock %}
 
+
+
+{% block navbar %}
+<form action="{{ url_for('add_note') }}" method="POST">
+<div class="form-group" style="margin-top: 20px;">
+    <button type="submit" class="write-btn" onclick="submitForm(event)">Save Note</button>
+    <a href="{{ url_for('notes_list') }}" class="write-btn-a" style="text-decoration: none;">Cancel</a>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2>Create a New Note</h2>
     
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
     
-    <form action="{{ url_for('add_note') }}" method="POST">
+    
         <div class="form-group">
-            <label for="title">Note Title</label>
             <input type="text" class="form-control" id="title" name="title" 
-                   style="width: 100%; background-color: #554B46; color: white; padding: 5px; border: 1px solid #ccc; margin-bottom: 20px; font-size: 18px;" 
+            placeholder="Title" required style="width: 1210px; background-color: #34251E; color: white; padding: 5px; border: 1px solid #1B212B; margin-bottom: 20px; font-size: 24px;" 
                    required>
         </div>
         
@@ -19,13 +26,10 @@
         <input type="hidden" id="hidden-input" name="content">
         
         <!-- Quill editor container -->
-        <div id="editor" style="height: 350px; background-color: white;"></div>
+        <div id="editor" style="height: 350px; background-color: #9C8874;"></div>
         
-        <div class="form-group" style="margin-top: 20px;">
-            <button type="submit" class="write-btn" onclick="submitForm(event)">Save Note</button>
-            <a href="{{ url_for('notes_list') }}" class="write-btn" style="margin-left: 10px; text-decoration: none;">Cancel</a>
-        </div>
-    </form>
+        
+    
 
     <!-- Include Quill library -->
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
@@ -42,5 +46,5 @@
             e.target.closest('form').submit();
         }
     </script>
-</div>
+</form>
 {% endblock %}

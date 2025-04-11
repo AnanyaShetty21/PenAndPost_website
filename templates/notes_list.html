@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 {% block title %}Your Notes{% endblock %}
+{% block navbar %}
+<a href="{{ url_for('add_note') }}" class="write-btn-a" style="display:inline-flex; text-decoration: none; margin-top: 20px;">
+    Add New Note
+</a>
+{% endblock %}
 {% block content %}
 <div class="notes-container">
     <h2>Your Notes</h2>
@@ -25,9 +30,7 @@
         <p class="no-notes">You don't have any notes yet. Start creating!</p>
     {% endif %}
 
-    <a href="{{ url_for('add_note') }}" class="add-note-btn">
-        Add New Note
-    </a>
+    
 
     <style>
         .notes-container {
@@ -47,9 +50,6 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
-        }
-        .note-card:hover {
-            transform: scale(1.05);
         }
         .note-link {
             color: white;
